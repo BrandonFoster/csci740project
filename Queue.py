@@ -15,8 +15,8 @@ class Queue:
         self.clocks[0] = self.next_person()
         self.next_times = [self.next_person]
         for i in range(servers):
-            clocks.append(self.service_time())
-            netx_times.append(self.service_time)
+            self.clocks.append(self.service_time())
+            self.next_times.append(self.service_time)
         self.queue = [] #Kibum
         self.servers = [False] * servers
         
@@ -54,12 +54,12 @@ class Queue:
     time -> the amount of time the simulation has advanced
     updates all of the clocks
     '''
-    def upadate_clocks(self,time):
+    def update_clocks(self,time):
         #subtract the time and then regerate the time that ran out
         for c in range(len(self.clocks)):
             self.clocks[c] -= time
-            if c == 0:
-                c = self.next_times[c]()
+            if self.clocks[c] == 0:
+                self.clocks[c] = self.next_times[c]()
                 
     def simulate(self, total_time):
         # start the simulation at time 0
@@ -70,6 +70,7 @@ class Queue:
             event_time = min(self.clocks)
             event = self.clocks.index(event_time)
             time += event_time
+            print(self.clocks)
             # run the simulation untill the time is past the total time
             if time > total_time:
                 break
@@ -80,21 +81,21 @@ class Queue:
                     self.queue.append(1)    #Kibum
                 else:
                     # if there is a free server send the customer to that server
-                    server = self.free_server()
+                    server = self.free_servers()
                     if server > -1:
                         self.take_customer(server)
                     # If there are no free servers then put the customer in the queue
                     else:
                         self.queue.append(1)    #Kibum
             # A server has finished
-            else event > 0:
-                self.end_service(server)
+            else:
+                self.end_service(event - 1)
             #update the clock
-            self.update_clock(event_time)
+            self.update_clocks(event_time)
             
 def problem2_arrivals():
     return np.random.exponential(1)
 def problem2_service():
     return np.random.gamma(3,0.25)
 
-q = Queue(problem2_arrivals, problem2_service)
+q = Queue(problem2_arrivals, problem2_service, 4)
