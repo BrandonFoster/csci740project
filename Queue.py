@@ -17,7 +17,7 @@ class Queue:
         for i in range(servers):
             clocks.append(self.service_time())
             netx_times.append(self.service_time)
-        self.queue = 0
+        self.queue = [] #Kibum
         self.servers = [False] * servers
         
     def get_queue(self):
@@ -46,8 +46,8 @@ class Queue:
     ends the service of a server
     '''
     def end_service(self, server):
-        if self.queue > 0:
-            self.queue -= 1
+        if len(self.queue) > 0:
+            self.queue.pop(0)   #Kibum
         else:
             self.servers[server] = False
     '''
@@ -76,8 +76,8 @@ class Queue:
             #The event of someone arriving
             if event == 0:
                 # If the queue has peaple in it just add to the queue
-                if self.queue > 0:
-                    self.queue += 1
+                if len(self.queue) > 0: #Kibum
+                    self.queue.append(1)    #Kibum
                 else:
                     # if there is a free server send the customer to that server
                     server = self.free_server()
@@ -85,7 +85,7 @@ class Queue:
                         self.take_customer(server)
                     # If there are no free servers then put the customer in the queue
                     else:
-                        self.queue += 1
+                        self.queue.append(1)    #Kibum
             # A server has finished
             else event > 0:
                 self.end_service(server)
