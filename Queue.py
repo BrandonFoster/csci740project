@@ -87,7 +87,7 @@ class Queue:
                     else:
                         self.queue.append(1)    #Kibum
             # A server has finished
-            else event > 0:
+            else event:
                 self.end_service(server)
             #update the clock
             self.update_clock(event_time)
