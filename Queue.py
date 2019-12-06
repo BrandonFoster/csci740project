@@ -10,15 +10,15 @@ class Queue:
     '''
     def __init__(self, next_person, service_time, servers):
         self.service_time = service_time
-        self.next_person = next_person
         self.clocks = [0]
+        self.servers = []
         self.clocks[0] = self.next_person()
         self.next_times = [self.next_person]
         for i in range(servers):
+            self.servers.append(Server(service_time))
             self.clocks.append(self.service_time())
             self.next_times.append(self.service_time)
         self.queue = [] #Kibum
-        self.servers = [False] * servers
         
     def get_queue(self):
         return self.queue
