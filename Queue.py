@@ -50,6 +50,82 @@ class Queue:
             self.queue.pop(0)   #Kibum
         else:
             self.servers[server] = False
+    
+    '''
+    red        -> [0,1] likeliness of the customer enjoying red
+    white      -> [0,1] likeliness of the customer enjoying white
+    sweat      -> [0,1] likeliness of the customer enjoying sweat
+    dry        -> [0,1] likeliness of the customer enjoying dry
+    money      -> money in dollar bills that the customer is willing to spend on wine
+    taste_time -> amount of time to taste the wine in minutes
+    Returns a dictionary of bottles bought where the key is the name of the wine
+    the value is the amount purchased
+    '''
+    def wine_tasting(self, red, white, sweet, dry, money, taste_time):
+        #price for wine bottle in dollars
+        price_sweet_red   = 14
+        price_sweet_white = 12
+        price_dry_red     = 25
+        price_dry_white   = 20
+         
+        #types of wine combinations
+        sweet_red   = sweet*red
+        sweet_white = sweet*white
+        dry_red     = dry*red
+        dry_white   = dry*white
+
+        #grabs the total of the combinations
+        tot_wine_comb = sweet_red + sweet_white + dry_red + dry_white
+        
+        #calculates the amount of wine bought based on each combination
+        taste = taste_time/10 #time tasting the wine as a ratio over an average time of 10 minutes
+
+        #potential bottles of wine to buy for each
+        pot_sweet_red   = math.floor(taste*(sweet_red/tot_wine_comb)*(money/price_sweet_red))
+        pot_sweet_white = math.floor(taste*(sweet_white/tot_wine_comb)*(money/price_sweet_white))
+        pot_dry_red     = math.floor(taste*(dry_red/tot_wine_comb)*(money/price_dry_red))
+        pot_dry_white   = math.floor(taste*(dry_white/tot_wine_comb)*(money/price_dry_white))
+
+        #buys bottles from the most to least enjoyed
+        bottle_dict = {"sweet red":0, "sweet white":0, "dry red":0, "dry white":0}
+        comb_dict = {"sweet red":sweet_red, "sweet white":sweet_white, "dry red":dry_red, "dry white":dry_white}
+        enjoyed_list = [sweet_red, sweet_white, dry_red, dry_white]
+        enjoyed_list.sort()
+        enjoyed_list.reverse()
+        for value in enjoyed_list:
+            comb = self.match_comb(comb_dict, value)
+            if("sweet red" == comb):
+                max_sweet_red = math.floor(money/price_sweet_red)
+                bought = min(max_sweet_red, pot_sweet_red)
+                money -= bought*price_sweet_red
+                bottle_dict["sweet red"] = bought
+            if("sweet white" == comb):
+                max_sweet_white = math.floor(money/price_sweet_white)
+                bought = min(max_sweet_white, pot_sweet_white)
+                money -= bought*price_sweet_white
+                bottle_dict["sweet white"] = bought
+            if("dry red" == comb):
+                max_dry_red = math.floor(money/price_dry_red)
+                bought = min(max_dry_red, pot_dry_red)
+                money -= bought*price_dry_red
+                bottle_dict["dry red"] = bought
+            if("dry white" == comb):
+                max_dry_white = math.floor(money/price_dry_white)
+                bought = min(max_dry_white, pot_dry_white)
+                money -= bought*price_dry_white
+                bottle_dict["dry white"] = bought
+            comb_dict.pop(comb, None)
+
+        return bottle_dict
+
+    '''
+    Used with the wine_tasting() function
+    '''
+    def match_comb(self, comb_dict, value):
+        for comb in comb_dict:
+            if(comb_dict[comb] == value):
+                return comb
+    
     '''
     time -> the amount of time the simulation has advanced
     updates all of the clocks
