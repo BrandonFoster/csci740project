@@ -1,5 +1,7 @@
 import numpy as np
 import math
+from Customer import Customer
+from Server import Server
 
 class Queue:
 
@@ -12,13 +14,19 @@ class Queue:
         self.service_time = service_time
         self.clocks = [0]
         self.servers = []
-        self.clocks[0] = self.next_person()
-        self.next_times = [self.next_person]
+        self.clocks[0] = next_person()
+        self.next_times = [next_person]
         for i in range(servers):
             self.servers.append(Server(service_time))
             self.clocks.append(self.service_time())
             self.next_times.append(self.service_time)
-        self.queue = [] #Kibum
+        self.queue = []
+        self.sales = {"sweet red":0, "dry red":0, "sweet white":0, "dry white": 0}
+        self.sweet_red = 14
+        self.sweet_white = 12
+        self.dry_red = 25
+        self.dry_white = 20
+        self.tasting_profits = 0
         
     def get_queue(self):
         return self.queue
@@ -28,29 +36,34 @@ class Queue:
     Returns -1 if no servers are avalible
     '''
     def free_servers(self):
-        i = -1
-        try:
-            i = self.servers.index(False)
-        except ValueError:
-            i = -1
-        return i
+        for s in range(len(self.servers)):
+            if self.servers[s].customer is None:
+                return s
+        return -1
     '''
     server -> index of the server
     simulates a server taking a customer
     '''
-    def take_customer(self,server):
-        self.servers[server] = True
+    def take_customer(self,server, customer):
+        self.servers[server].customer = customer
+        self.servers[server].time = self.clocks[server + 1]
+        self.tasting_profit += 5
 
     '''
     server -> index of the server
     ends the service of a server
     '''
     def end_service(self, server):
+        self.sell_wine(self.servers[server].customer)
         if len(self.queue) > 0:
-            self.queue.pop(0)   #Kibum
+            self.take_customer(server,self.queue.pop(0))
         else:
-            self.servers[server] = False
-    
+            self.servers[server].customer = None
+
+    def sell_wine(self, customer):
+        wine_sold = self.wine_tasting(customer)
+        for wine in wine_sold:
+            self.sales[wine] += wine_sold[wine]
     '''
     red        -> [0,1] likeliness of the customer enjoying red
     white      -> [0,1] likeliness of the customer enjoying white
@@ -61,12 +74,20 @@ class Queue:
     Returns a dictionary of bottles bought where the key is the name of the wine
     the value is the amount purchased
     '''
-    def wine_tasting(self, red, white, sweet, dry, money, taste_time):
+    def wine_tasting(self, customer):
+
+        sweet = customer.affinity[0]
+        dry = customer.affinity[1]
+        white = customer.affinity[2]
+        red = customer.affinity[3]
+        money = customer.max_budget
+        taste_time = customer.time
+        
         #price for wine bottle in dollars
-        price_sweet_red   = 14
-        price_sweet_white = 12
-        price_dry_red     = 25
-        price_dry_white   = 20
+        price_sweet_red   = self.sweet_red
+        price_sweet_white = self.sweet_white
+        price_dry_red     = self.dry_red
+        price_dry_white   = self.dry_white
          
         #types of wine combinations
         sweet_red   = sweet*red
@@ -136,42 +157,60 @@ class Queue:
             self.clocks[c] -= time
             if self.clocks[c] == 0:
                 self.clocks[c] = self.next_times[c]()
+        for s in self.servers:
+            if not(s.customer is None):
+                s.customer.time += time
                 
     def simulate(self, total_time):
         # start the simulation at time 0
         time = 0
+        self.tasting_profit = 0
+        for i in self.sales:
+            self.sales[i] = 0
         # Main simuation looop
         while True:
             #find the next event and time untill the next event
             event_time = min(self.clocks)
             event = self.clocks.index(event_time)
             time += event_time
-            print(self.clocks)
+            # update the clock
+            self.update_clocks(event_time)
             # run the simulation untill the time is past the total time
             if time > total_time:
                 break
             #The event of someone arriving
             if event == 0:
                 # If the queue has peaple in it just add to the queue
-                if len(self.queue) > 0: #Kibum
-                    self.queue.append(1)    #Kibum
+                if len(self.queue) > 0:
+                    self.queue.append(Customer())
                 else:
                     # if there is a free server send the customer to that server
                     server = self.free_servers()
                     if server > -1:
-                        self.take_customer(server)
+                        self.take_customer(server,Customer())
                     # If there are no free servers then put the customer in the queue
                     else:
-                        self.queue.append(1)    #Kibum
+                        self.queue.append(Customer())
             # A server has finished
             else:
                 self.end_service(event - 1)
-            #update the clock
-            self.update_clocks(event_time)
+        return self.total_profit()
+
+    def total_profit(self):
+        dred_prof = self.sales["dry red"] * self.dry_red
+        dwhite_prof = self.sales["dry white"] * self.dry_white
+        sred_prof = self.sales["sweet red"] * self.sweet_red
+        swhite_prof = self.sales["sweet white"] * self.sweet_white
+        return dred_prof + dwhite_prof + sred_prof + swhite_prof + self.tasting_profit
+    def mass_simulate(self, iterations):
+        total = 0
+        for i in range(iterations):
+            total += self.simulate(480)
+        return total/iterations
             
 def problem2_arrivals():
-    return np.random.exponential(1)
+    return np.random.exponential(0.20)
 def problem2_service():
-    return np.random.gamma(3,0.25)
+    return np.random.gamma(5,2)
 
 q = Queue(problem2_arrivals, problem2_service, 4)
