@@ -74,7 +74,7 @@ class Queue:
         dry = customer.affinity[1]
         white = customer.affinity[2]
         red = customer.affinity[3]
-        money = customer.max_budget
+        money = np.random.uniform()*customer.max_budget
         taste_time = customer.time
         
         #price for wine bottle in dollars
