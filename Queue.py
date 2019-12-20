@@ -203,14 +203,16 @@ class Queue:
         swhite_prof = self.sales["sweet white"] * self.sweet_white
         return dred_prof + dwhite_prof + sred_prof + swhite_prof + self.tasting_profit
     def mass_simulate(self, iterations):
-        total = 0
+        total = []
         for i in range(iterations):
-            total += self.simulate(480)
-        return total/iterations
+            total.append(self.simulate(480))
+        return np.mean(total),np.std(total)
+        
             
 def problem2_arrivals():
+    
     return np.random.exponential(0.20)
 def problem2_service():
-    return np.random.gamma(5,2)
+    return np.random.gamma(10,2)
 
 q = Queue(problem2_arrivals, problem2_service, 4)
