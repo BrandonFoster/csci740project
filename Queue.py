@@ -65,12 +65,6 @@ class Queue:
         for wine in wine_sold:
             self.sales[wine] += wine_sold[wine]
     '''
-    red        -> [0,1] likeliness of the customer enjoying red
-    white      -> [0,1] likeliness of the customer enjoying white
-    sweat      -> [0,1] likeliness of the customer enjoying sweat
-    dry        -> [0,1] likeliness of the customer enjoying dry
-    money      -> money in dollar bills that the customer is willing to spend on wine
-    taste_time -> amount of time to taste the wine in minutes
     Returns a dictionary of bottles bought where the key is the name of the wine
     the value is the amount purchased
     '''
@@ -80,7 +74,7 @@ class Queue:
         dry = customer.affinity[1]
         white = customer.affinity[2]
         red = customer.affinity[3]
-        money = customer.max_budget
+        money = np.random.uniform()*customer.max_budget
         taste_time = customer.time
         
         #price for wine bottle in dollars
