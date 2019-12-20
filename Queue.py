@@ -22,11 +22,11 @@ class Queue:
             self.next_times.append(self.service_time)
         self.queue = []
         self.sales = {"sweet red":0, "dry red":0, "sweet white":0, "dry white": 0}
-        self.sweet_red = 14
+        self.sweet_red = 20
         self.sweet_white = 12
         self.dry_red = 25
-        self.dry_white = 20
-        self.tasting_profits = 0
+        self.dry_white = 14
+        self.tastings = 0
         
     def get_queue(self):
         return self.queue
@@ -47,7 +47,7 @@ class Queue:
     def take_customer(self,server, customer):
         self.servers[server].customer = customer
         self.servers[server].time = self.clocks[server + 1]
-        self.tasting_profit += 5
+        self.tastings += 1
 
     '''
     server -> index of the server
@@ -195,7 +195,13 @@ class Queue:
         dwhite_prof = self.sales["dry white"] * self.dry_white
         sred_prof = self.sales["sweet red"] * self.sweet_red
         swhite_prof = self.sales["sweet white"] * self.sweet_white
-        return dred_prof + dwhite_prof + sred_prof + swhite_prof + self.tasting_profit
+        tasting_prof = self.tastings*5
+        dred_cost = (self.sales["dry red"] + (math.ceil(self.tastings / 10.0))) * (self.dry_red / 4)
+        dwhite_cost = (self.sales["dry white"] + (math.ceil(self.tastings / 10.0))) * (self.dry_white / 4)
+        sred_cost = (self.sales["sweet red"] + (math.ceil(self.tastings / 10.0))) * (self.sweet_red / 4)
+        swhite_cost = (self.sales["sweet white"] + (math.ceil(self.tastings / 10.0))) * (self.sweet_white / 4)
+        return (dred_prof - dred_cost + dwhite_prof - dwhite_cost +
+                sred_prof - sred_cost + swhite_prof - swhite_cost + self.tasting_profit)
     def mass_simulate(self, iterations):
         total = []
         for i in range(iterations):
@@ -203,10 +209,47 @@ class Queue:
         return np.mean(total),np.std(total)
         
             
-def problem2_arrivals():
-    
+def project_arrivals_summer():
     return np.random.exponential(0.20)
-def problem2_service():
+def project_arrivals_winter():
+    return np.random.exponential(48)
+def project_service_20():
     return np.random.gamma(10,2)
+def project_service_10():
+    return np.random.gamma(5,2)
+def project_service_5():
+    return np.random.gamma(2.5,2)
 
-q = Queue(problem2_arrivals, problem2_service, 4)
+fast_serve_summer = Queue(project_arrivals_summer, project_service_5, 4)
+normal_serve_summer = Queue(project_arrivals_summer, project_service_10, 4)
+slow_serve_summer = Queue(project_arrivals_summer, project_service_20, 4)
+
+fast_serve_winter = Queue(project_arrivals_winter, project_service_5, 4)
+normal_serve_winter = Queue(project_arrivals_winter, project_service_10, 4)
+slow_serve_winter = Queue(project_arrivals_winter, project_service_20, 4)
+
+reps  = 20
+
+fast_summer = []
+for i in range(reps):
+    fast_summer.append(fast_serve_summer.simulate(480))
+
+normal_summer = []
+for i in range(reps):
+    normal_summer.append(normal_serve_summer.simulate(480))
+
+slow_summer = []
+for i in range(reps):
+    slow_summer.append(slow_serve_summer.simulate(480))
+
+fast_winter = []
+for i in range(reps):
+    fast_winter.append(fast_serve_winter.simulate(480))
+
+normal_winter = []
+for i in range(reps):
+    normal_winter.append(normal_serve_winter.simulate(480))
+
+slow_winter = []
+for i in range(reps):
+    slow_winter.append(slow_serve_winter.simulate(480))
